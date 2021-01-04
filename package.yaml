@@ -1,7 +1,7 @@
 name:                fxhitori
 version:             0.1.0.0
 github:              "nrpeterson/fxhitori"
-license:             BSD3
+license:             GPL-3.0-or-later
 author:              "Nick Peterson"
 maintainer:          "nick@nrp.dev"
 copyright:           "2020 Nick Peterson"
