@@ -1,0 +1,88 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: b8059c05d39cc76b0a9e956f00c6351463aa31b7515d4d18d1183d1c96614e06
+
+name:           fxhitori
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/nrpeterson/fxhitori#readme>
+homepage:       https://github.com/nrpeterson/fxhitori#readme
+bug-reports:    https://github.com/nrpeterson/fxhitori/issues
+author:         Nick Peterson
+maintainer:     nick@nrp.dev
+copyright:      2020 Nick Peterson
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/nrpeterson/fxhitori
+
+library
+  exposed-modules:
+      FxHitori.Board
+      FxHitori.Strategy
+      FxHitori.Strategy.AdjacentPairs
+      FxHitori.Strategy.ArticulationPoints
+      FxHitori.Strategy.BetweenMatchingCells
+      FxHitori.Strategy.Cleanup
+      FxHitori.Strategy.Core
+      Util.Graph.ArticulationPoints
+      Util.Graph.Core
+      Util.Graph.DFS
+      Util.Graph.DFSState
+      Util.List
+  other-modules:
+      Paths_fxhitori
+  hs-source-dirs:
+      src
+  default-extensions: TupleSections RankNTypes FlexibleContexts
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , microlens-platform
+    , mtl
+    , transformers
+  default-language: Haskell2010
+
+executable fxhitori-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_fxhitori
+  hs-source-dirs:
+      app
+  default-extensions: TupleSections RankNTypes FlexibleContexts
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , fxhitori
+    , microlens-platform
+    , mtl
+    , transformers
+  default-language: Haskell2010
+
+test-suite fxhitori-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_fxhitori
+  hs-source-dirs:
+      test
+  default-extensions: TupleSections RankNTypes FlexibleContexts
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , fxhitori
+    , microlens-platform
+    , mtl
+    , transformers
+  default-language: Haskell2010
