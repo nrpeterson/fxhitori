@@ -40,7 +40,8 @@ import Util.Graph.DFSState
 dfsFrom :: Ord vert => vert -> Maybe vert -> State (DFSState vert appSt) ()
 dfsFrom v maybeParent = do
   st <- get
-  if isVisited v st then return ()
+  if isVisited v st 
+  then return ()
   else do
     visitOrder <- use stNextVisitNum
     assign (stVisitOrder . ix v) (Just visitOrder)
@@ -67,18 +68,18 @@ dfsFrom v maybeParent = do
 -- Note that this update function is allowed to modify the entire `DFSState`, not just the app-specific state. As such,
 -- this can be used to modify the behavior of the DFS or even change the graph itself before iterating to children.
 runDFSFrom :: Ord v => v                               -- ^ Initial vex for DFS
-                   -> Graph v                         -- ^ Graph
-                   -> st                              -- ^ Initial application-specific state
-                   -> (v -> State (DFSState v st) ()) -- ^ Application-specific pre-recurse state updater
-                   -> (v -> State (DFSState v st) ()) -- ^ Application-specific post-recurse state updater
-                   -> DFSState v st                   -- ^ Final `DFSState` after DFS is complete
+                    -> Graph v                         -- ^ Graph
+                    -> st                              -- ^ Initial application-specific state
+                    -> (v -> State (DFSState v st) ()) -- ^ Application-specific pre-recurse state updater
+                    -> (v -> State (DFSState v st) ()) -- ^ Application-specific post-recurse state updater
+                    -> DFSState v st                   -- ^ Final `DFSState` after DFS is complete
 runDFSFrom v g initAppSt preRecurse postRecurse = execState (dfsFrom v Nothing) st
-    where st = initialState g initAppSt preRecurse postRecurse
+  where st = initialState g initAppSt preRecurse postRecurse
 
 dfs :: Ord vert => State (DFSState vert appSt) ()
 dfs = do
-    verts <- vertices <$> use stGraph
-    mapM_ ( \ v -> dfsFrom v Nothing ) verts
+  verts <- vertices <$> use stGraph
+  mapM_ (flip dfsFrom Nothing) verts
 
 -- | Run an application-specific depth-first search on a graph return the final `DFSState`.
 -- 
@@ -94,10 +95,10 @@ dfs = do
 -- such, this can be used to modify the behavior of the DFS or even change the graph itself before iterating to 
 -- children.
 runDFS :: Ord v => Graph v                         -- ^ Graph
-               -> st                              -- ^ Initial application-specific state
-               -> (v -> State (DFSState v st) ()) -- ^ Application-specific pre-recurse state updater
-               -> (v -> State (DFSState v st) ()) -- ^ Application-specific post-recurse state updater
-               -> DFSState v st                   -- ^ Final `DFSState` after DFS is complete
+                -> st                              -- ^ Initial application-specific state
+                -> (v -> State (DFSState v st) ()) -- ^ Application-specific pre-recurse state updater
+                -> (v -> State (DFSState v st) ()) -- ^ Application-specific post-recurse state updater
+                -> DFSState v st                   -- ^ Final `DFSState` after DFS is complete
 runDFS g initAppSt preRecurse postRecurse = execState dfs $ initialState g initAppSt preRecurse postRecurse
 
 -- | Run "vanilla" depth-first search from a specified vertex and return the final `DFSState`.
@@ -108,8 +109,8 @@ runDFS g initAppSt preRecurse postRecurse = execState dfs $ initialState g initA
 -- This only returns state common to all depth-first searches (parents and visit order).  It is equivalent to calling
 -- `runDFSFrom` with unit @()@ app state and no-op state updaters.
 runVanillaDFSFrom :: Ord vert => vert             -- ^ Initial vertex for DFS
-                             -> Graph vert       -- ^ Graph
-                             -> DFSState vert () -- ^ Final DFSState after DFS is complete
+                              -> Graph vert       -- ^ Graph
+                              -> DFSState vert () -- ^ Final DFSState after DFS is complete
 runVanillaDFSFrom v g = runDFSFrom v g () (const $ return ()) (const $ return ())
 
 -- | Run "vanilla" depth-first search on a graph return the final `DFSState`.
@@ -121,5 +122,5 @@ runVanillaDFSFrom v g = runDFSFrom v g () (const $ return ()) (const $ return ()
 -- This only returns state common to all depth-first searches (parents and visit order).  It is equivalent to calling
 -- `runDFS` with unit @()@ app state and no-op state updaters.
 runVanillaDFS :: Ord vert => Graph vert       -- ^ Graph
-                         -> DFSState vert () -- ^ Final DFSState after DFS is complete
+                          -> DFSState vert () -- ^ Final DFSState after DFS is complete
 runVanillaDFS g = runDFS g () (const $ return ()) (const $ return ())

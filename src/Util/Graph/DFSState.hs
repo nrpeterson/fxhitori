@@ -46,26 +46,25 @@ import Util.Graph.Core
 -- Note that the state updaters are allowed to modify ALL state, not just the application-specific
 -- state; this means in practice that a DFS application can actually modify the behavior of the DFS (or even modify the
 -- graph itself) on the fly.
-data DFSState v st = DFSState {
-  -- | Known vertex parents in the DFS tree / forest
-  _stParents :: VertexProperty v (Maybe v),
-  -- | Visit order of vertices in the DFS, where known
-  _stVisitOrder :: VertexProperty v (Maybe Int),
-  -- | Visit order number to assign to the next visited vertex
-  _stNextVisitNum :: Int,
-  -- | Application-specific state
-  _stAppState :: st,
-  -- | Application-specific pre-recursion state updater function.
-  --
-  -- Note that this can modify ALL state, not just the application-specific state.
-  _stPreRecurseUpdater :: v -> State (DFSState v st) (),
-  -- | Application-specific post-recursion state updater function.
-  -- 
-  -- Note that this can modify ALL state, not just the application-specific state.
-  _stPostRecurseUpdater :: v -> State (DFSState v st) (),
-  -- | The graph on which the traversal is operating
-  _stGraph :: Graph v
-  }
+data DFSState v st = DFSState { -- | Known vertex parents in the DFS tree / forest
+                                _stParents :: VertexProperty v (Maybe v),
+                                -- | Visit order of vertices in the DFS, where known
+                                _stVisitOrder :: VertexProperty v (Maybe Int),
+                                -- | Visit order number to assign to the next visited vertex
+                                _stNextVisitNum :: Int,
+                                -- | Application-specific state
+                                _stAppState :: st,
+                                -- | Application-specific pre-recursion state updater function.
+                                --
+                                -- Note that this can modify ALL state, not just the application-specific state.
+                                _stPreRecurseUpdater :: v -> State (DFSState v st) (),
+                                -- | Application-specific post-recursion state updater function.
+                                -- 
+                                -- Note that this can modify ALL state, not just the application-specific state.
+                                _stPostRecurseUpdater :: v -> State (DFSState v st) (),
+                                -- | The graph on which the traversal is operating
+                                _stGraph :: Graph v
+                              }
 
 makeLenses ''DFSState
 
@@ -91,7 +90,7 @@ isVisited :: Ord v => v                -- ^ Vertex to check
                    -> DFSState v appSt -- ^ State of the traversal
                    -> Bool             -- ^ True if the vertex has been visited, and False otherwise
 isVisited v st = isJust visitOrder
-    where visitOrder = st ^?! (stVisitOrder . ix v)
+  where visitOrder = st ^?! (stVisitOrder . ix v)
 
 -- | Find all back-edges for the given vertex, relative to the DFS tree (perhaps partial) stored in the `DFSState`.
 --
@@ -102,26 +101,28 @@ backEdges :: Ord v => v             -- ^ The vertex whose edges you want
                    -> DFSState v st -- ^ The current state of a DFS traversal
                    -> [v]           -- ^ Vertices reachable from @v@ via back-edges
 backEdges v dfsState = filter ( \ w -> parent /= Just w && visitedBeforeV w) $ neighborsOf v g
-    where g = dfsState ^. stGraph
-          vNums = view stVisitOrder dfsState
-          vOrd = fromJust $ vNums ^?! ix v
-          parent = dfsState ^?! stParents . ix v
-          visitedBeforeV w = case vNums ^?! ix w of
-              Just wOrd -> wOrd < vOrd
-              Nothing   -> False
+    where 
+      g = dfsState ^. stGraph
+      vNums = view stVisitOrder dfsState
+      vOrd = fromJust $ vNums ^?! ix v
+      parent = dfsState ^?! stParents . ix v
+      visitedBeforeV w = case vNums ^?! ix w of
+        Just wOrd -> wOrd < vOrd
+        Nothing   -> False
 
 -- | Find direct children (known so far) of @v@ in the (perhaps partial) DFS tree represented by `DFSState`.
 knownChildren :: Ord v => v             -- ^ The vertex whose known children you want
                        -> DFSState v st -- ^ The current state of a DFS traversal
                        -> [v]           -- ^ Known children of @v@ in the current DFS so far
 knownChildren v dfsState = filter vIsParent $ neighborsOf v g
-    where g = view stGraph dfsState
-          vIsParent w = parents ^?! ix w == Just v
-          parents = view stParents dfsState 
+  where 
+    g = view stGraph dfsState
+    vIsParent w = parents ^?! ix w == Just v
+    parents = view stParents dfsState 
 
 -- | Find all (known so far) descendants of @v@ in the (perhaps partial) DFS tree represented by `DFSState`.   
 verticesRootedAt :: Ord v => v             -- ^ The vertex whose descendants you want
                           -> DFSState v st -- ^ The current state of a DFS traversal
                           -> [v]           -- ^ Known descendants of @v@ in the current DFS so far
 verticesRootedAt v dfsState = v : subDescendants
-    where subDescendants = knownChildren v dfsState >>= flip verticesRootedAt dfsState
+  where subDescendants = knownChildren v dfsState >>= flip verticesRootedAt dfsState

@@ -12,14 +12,16 @@ import Util.Graph.ArticulationPoints
 
 basicMoveFunc :: Board -> [(Move, Explanation)]
 basicMoveFunc board = buildMove <$> filter ( \ (pos, _) -> isNothing (statusAt pos board)) artPoints
-    where g = toNeighborGraph board
-          artPoints = findArticulationPoints g
-          buildMove (pos, comp) = (mv, ex)
-              where mv = Move pos White
-                    sName = "Articulation Points"
-                    sDesc = "Making the cell at " ++ show pos ++ " black would disconnect the board"
-                    groups = singleton "Disconnected Cells" comp
-                    ex = Explanation sName sDesc groups
+  where 
+    g = toNeighborGraph board
+    artPoints = findArticulationPoints g
+    buildMove (pos, comp) = (mv, ex)
+      where 
+        mv = Move pos White
+        sName = "Articulation Points"
+        sDesc = "Making the cell at " ++ show pos ++ " black would disconnect the board"
+        groups = singleton "Disconnected Cells" comp
+        ex = Explanation sName sDesc groups
 
 -- | If marking a cell `Black` would cause the board to become disconnected, then the cell must be `White`.
 --

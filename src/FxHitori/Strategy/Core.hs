@@ -39,14 +39,13 @@ data Explanation = Explanation
 -- Note that this means strategies are currently stateless -- they will do a full computation on the board every single
 -- time.  This is obviously inefficient and might be changed in the future.
 newtype Strategy = Strategy {
-    -- | The move function associated with this strategy.
-    getMove :: Board -> Maybe (Move, Explanation)
+  -- | The move function associated with this strategy.
+  getMove :: Board -> Maybe (Move, Explanation)
 }
 
 -- | Strategies from a semigroup, where composition involves exhausting the left strategy before moving on to the right.
 instance Semigroup Strategy where
-    -- | Look for moves using the left strategy; if there are none, then look for moves using the right.
-    (Strategy f1) <> (Strategy f2) = Strategy (\ board -> f1 board <|> f2 board )
+  (Strategy f1) <> (Strategy f2) = Strategy (\ board -> f1 board <|> f2 board )
 
 -- | The `Semigroup Strategy` instance actually forms a monoid. The identity strategy is one that always returns
 -- `Nothing`.

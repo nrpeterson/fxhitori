@@ -43,9 +43,9 @@ zipWithMaybe :: (a -> b -> Maybe c) -- ^ Map/zip function. Map a pair of values 
              -> [b]                 -- ^ Second input list
              -> [c]                 -- ^ Result list, throwing away `Nothing`s and unwrapping `Just`s.
 zipWithMaybe f (x:xs) (y:ys) = let rest = zipWithMaybe f xs ys in
-    case f x y of
-        Just result -> result:rest
-        Nothing -> rest
+  case f x y of
+    Just result -> result:rest
+    Nothing -> rest
 zipWithMaybe _ _ _ = []
 
 -- | Simultaneously zip and filter three lists.
@@ -58,9 +58,9 @@ zipWithMaybe3 :: (a -> b -> c -> Maybe d) -- ^ Map/zip function. Map a triple of
               -> [c]                      -- ^ Third input list
               -> [d]                      -- ^ Result list, throwing away `Nothing`s and unwrapping `Just`s.
 zipWithMaybe3 f (x:xs) (y:ys) (z:zs) = let rest = zipWithMaybe3 f xs ys zs in
-    case f x y z of
-        Just result -> result:rest
-        Nothing -> rest
+  case f x y z of
+    Just result -> result:rest
+    Nothing -> rest
 zipWithMaybe3 _ _ _ _ = []
 
 -- | Traversal that covers all elements in the list EXCEPT the given index.
@@ -90,7 +90,8 @@ rowColExcept _ _ [] = pure []
 -- prop> [[1, 2, 3], [4, 5, 6], [7, 8, 9]] & ixs [(0, 1), (1, 2)] .~ 0 == [[1, 0, 3], [4, 5, 0], [7, 8, 9]]
 ixs :: [(Int, Int)] -> Traversal' [[a]] a
 ixs is = ixs' (nub is)
-    where ixs' [] _ xs = pure xs
-          ixs' ((i, j):rest) f xs = case xs ^? (ix i . ix j) of
-              Just xij -> set (ix i . ix j) <$> f xij <*> ixs rest f xs
-              Nothing -> ixs rest f xs
+  where 
+    ixs' [] _ xs = pure xs
+    ixs' ((i, j):rest) f xs = case xs ^? (ix i . ix j) of
+      Just xij -> set (ix i . ix j) <$> f xij <*> ixs rest f xs
+      Nothing -> ixs rest f xs
