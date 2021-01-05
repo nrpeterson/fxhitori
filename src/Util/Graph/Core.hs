@@ -65,8 +65,9 @@ type VertexProperty v a = Map v a
 graphFromEdges :: Ord v => [(v, v)]   -- ^ Collection of edges (as tuples where order doesn't matter) 
                            -> Graph v -- ^ Graph with the given edges (and vertex set derived from the edges)
 graphFromEdges es = Graph $ sort . nub <$> adjMap
-    where adjMap = fromListWith (<>) pairs
-          pairs = es >>= ( \ (v, w) -> [ (v, [w]), (w, [v]) ] )
+  where 
+    adjMap = fromListWith (<>) pairs
+    pairs = es >>= ( \ (v, w) -> [ (v, [w]), (w, [v]) ] )
 
 -- | Create a graph from adjacency lists.
 -- 
@@ -82,12 +83,12 @@ vertices (Graph adj) = keys adj
 -- | Compute the number of (undirected) edges in the input graph.
 numEdges :: Graph vert -> Int
 numEdges (Graph adjs) = sum numNeighbors `div` 2
-    where numNeighbors = length <$> adjs
+  where numNeighbors = length <$> adjs
 
 -- | Return a list of all edges in the graph.
 edges :: Ord v => Graph v -> [(v, v)]
 edges (Graph adjs) = assocs adjs >>= buildEdges
-    where buildEdges (v, ns) = (v,) <$> filter (> v) ns
+  where buildEdges (v, ns) = (v,) <$> filter (> v) ns
 
 -- | Retrieve the list of vertices adjacent to a given vertex in a graph.
 neighborsOf :: Ord v => v -> Graph v -> [v]
@@ -98,7 +99,7 @@ neighborsOf v (Graph adj) = adj ^?! ix v
 -- Properties are initialized via a function that takes a graph and a vertex and produces a value.
 vertexProperty :: Graph v -> (Graph v -> v -> a) -> VertexProperty v a
 vertexProperty g f = mapWithKey mapper (g ^. adjLists)
-   where mapper v _ = f g v
+  where mapper v _ = f g v
 
 -- | Helper for creating arrays indexed by the vertex set of a given graph.
 --

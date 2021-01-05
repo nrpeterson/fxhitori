@@ -65,12 +65,12 @@ updateMinPost v = do
     assign (stAppState . apIsAP . ix v) True
     assign (stAppState . apExampleComponent . ix v) $ verticesRootedAt (last children) st
   else do 
-      let descendentLows = fmap (\ w -> (w, curLows ^?! ix w)) children
-      let compRoot = fst <$> find (\ (_, l) -> l >= visitNum ) descendentLows
-      let comp = flip verticesRootedAt st <$> compRoot
-      forM_ comp (\ c -> do assign (stAppState . apIsAP . ix v) True; assign (stAppState . apExampleComponent . ix v) c )
-      let newMin = minimum $ (curLows ^?! ix v) : (snd <$> descendentLows)
-      assign (stAppState . apLow . ix v) newMin
+    let descendentLows = fmap (\ w -> (w, curLows ^?! ix w)) children
+    let compRoot = fst <$> find (\ (_, l) -> l >= visitNum ) descendentLows
+    let comp = flip verticesRootedAt st <$> compRoot
+    forM_ comp (\ c -> do assign (stAppState . apIsAP . ix v) True; assign (stAppState . apExampleComponent . ix v) c )
+    let newMin = minimum $ (curLows ^?! ix v) : (snd <$> descendentLows)
+    assign (stAppState . apLow . ix v) newMin
 
 -- | Initial app-specific state for finding articulation points.
 --
@@ -91,7 +91,8 @@ initAPState g = ArtPointSt {
 --     * The second is a list of vertices representing a connected component created by removing the accumulation point.
 findArticulationPoints :: Ord v => Graph v -> [(v, [v])]
 findArticulationPoints g = (\ v -> (v, comp ^?! ix v)) <$> filter (\ v -> isAP ^?! ix v) (vertices g)
-    where dfsResults = runDFS g (initAPState g) updateMinPre updateMinPost
-          isAP = view (stAppState . apIsAP) dfsResults
-          comp = sort <$> view (stAppState . apExampleComponent) dfsResults
+  where 
+    dfsResults = runDFS g (initAPState g) updateMinPre updateMinPost
+    isAP = view (stAppState . apIsAP) dfsResults
+    comp = sort <$> view (stAppState . apExampleComponent) dfsResults
 

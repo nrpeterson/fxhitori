@@ -41,9 +41,14 @@ module FxHitori.Board (
   boardCells,
 
   -- ** Additional Optics
-  cellAt,
-  rowColMateCells,
   adjCellsTo,
+  allCells,
+  blackCells,
+  cellAt,
+  nonBlackCells,
+  rowColMateCells,
+  unmarkedCells,
+  whiteCells,
 
   -- ** Helper Methods
   statusAt,
@@ -118,6 +123,14 @@ unmarkedCells = allCells . filtered (\ (Cell _ _ st) -> isNothing st)
 nonBlackCells :: Traversal' Board Cell
 nonBlackCells = allCells . filtered (\ (Cell _ _ st) -> st /= Just Black)
 
+-- | A `Traversal'` that traverses all cells whose status is `Black`.
+blackCells :: Traversal' Board Cell
+blackCells = allCells . filtered(\ (Cell _ _ st) -> st == Just Black)
+
+-- | A `Traversal'` that traverses all cells whose status is `White`.
+whiteCells :: Traversal' Board Cell
+whiteCells = allCells . filtered(\ (Cell _ _ st) -> st == Just White)
+
 -- | Apply a a `Move` to a `Board`, creating a new `Board` with a cell's status updated.
 applyMove :: Move -> Board -> Board
 applyMove (Move pos st) = cellAt pos . cellStatus ?~ st
@@ -146,10 +159,11 @@ statusAt pos = ( ^?! (cellAt pos . cellStatus))
 -- Note that this method does not check that all rows are of the same length.
 boardFromNums :: [[Int]] -> Board
 boardFromNums vals = Board nRows nCols cells
-    where cells = mapWithIndex2d cellBuilder vals
-          cellBuilder i j val = Cell (i, j) val Nothing
-          nRows = length vals
-          nCols = length $ head vals
+  where 
+    cells = mapWithIndex2d cellBuilder vals
+    cellBuilder i j val = Cell (i, j) val Nothing
+    nRows = length vals
+    nCols = length $ head vals
 
 -- | Create a pretty-printed view of the given Hitori board.
 --
@@ -181,30 +195,32 @@ boardFromNums vals = Board nRows nCols cells
 -- @
 printBoard :: Board -> String
 printBoard (Board _ nCols cells) = line ++ intercalate line tableRows ++ line
-    where line = "\n" ++ replicate (5 * nCols + 1) '-' ++ "\n"
-          tableRows = map buildRow cells
-          buildRow row = "|" ++ intercalate "|" (map buildCell row) ++ "|"
-          buildCell (Cell _ val st) = pad (show val ++ stateMark st)
-          stateMark Nothing = ""
-          stateMark (Just Black) = "x"
-          stateMark (Just White) = "o"
-          pad s
-              | length s >= 4 = take 4 s
-              | length s == 3 = " " ++ s
-              | length s == 2 = " " ++ s ++ " "
-              | length s == 1 = " " ++ s ++ "  "
-              | otherwise = "   "
+  where 
+    line = "\n" ++ replicate (5 * nCols + 1) '-' ++ "\n"
+    tableRows = map buildRow cells
+    buildRow row = "|" ++ intercalate "|" (map buildCell row) ++ "|"
+    buildCell (Cell _ val st) = pad (show val ++ stateMark st)
+    stateMark Nothing = ""
+    stateMark (Just Black) = "x"
+    stateMark (Just White) = "o"
+    pad s
+      | length s >= 4 = take 4 s
+      | length s == 3 = " " ++ s
+      | length s == 2 = " " ++ s ++ " "
+      | length s == 1 = " " ++ s ++ "  "
+      | otherwise = "   "
 
 -- | Build a graph from the given board, where vertices are positions and edges connect adjacent positions.
 --
 -- Cells explicitly marked `Black` are not included in the graph.
 toNeighborGraph :: Board -> Graph (Int, Int)
 toNeighborGraph board = graphFromAdjs adjs
-    where cells = board ^.. nonBlackCells
-          adjs = buildAdjs <$> cells
-          buildAdjs cell = (cell ^. cellPosition, (^. cellPosition) <$> nbrs)
-              where nbrs = board ^.. adjCellsTo cell . filtered notBlack
-          notBlack (Cell _ _ st) = st /= Just Black
+  where 
+    cells = board ^.. nonBlackCells
+    adjs = buildAdjs <$> cells
+    buildAdjs cell = (cell ^. cellPosition, (^. cellPosition) <$> nbrs)
+      where nbrs = board ^.. adjCellsTo cell . filtered notBlack
+    notBlack (Cell _ _ st) = st /= Just Black
 
 -- | Biuld a graph from the given board, where vertices are positions and edges connect cells that share a row/column
 -- and have the same value.
@@ -212,11 +228,13 @@ toNeighborGraph board = graphFromAdjs adjs
 -- Cells explicitly marked `Black` are not included in the graph.
 toSharedValueGraph :: Board -> Graph (Int, Int)
 toSharedValueGraph board = graphFromAdjs adjs
-    where cells = board ^.. nonBlackCells
-          adjs = buildAdjs <$> cells
-          buildAdjs cell = (pos, (^. cellPosition) <$> board ^.. matches)
-              where (Cell pos val _) = cell
-                    matches = rowColMateCells cell . filtered (\ (Cell _ v st) -> isNothing st && v == val)
+  where 
+    cells = board ^.. nonBlackCells
+    adjs = buildAdjs <$> cells
+    buildAdjs cell = (pos, (^. cellPosition) <$> board ^.. matches)
+      where 
+        (Cell pos val _) = cell
+        matches = rowColMateCells cell . filtered (\ (Cell _ v st) -> isNothing st && v == val)
 
 
 
